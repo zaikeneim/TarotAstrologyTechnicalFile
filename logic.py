@@ -4,6 +4,9 @@ from datetime import datetime
 # Importa dati multilingua e funzioni di localizzazione
 from tarot_data import MAZZO_STRUTTURA, get_tarot_meaning, get_tarot_card_display_name
 from astrology_data import get_zodiac_meaning
+# Importa funzioni e dati di numerologia
+from numerology import calculate_numerology
+from numerology_data import get_numerology_meaning
 from localization import (
     get_string, get_display_sign_name, get_orientation_string,
     DEFAULT_LANG
@@ -58,7 +61,8 @@ def get_segno_solare(data):
 
 def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
     """
-    Genera il report testuale combinando Tarocchi e Astrologia nella lingua specificata.
+    Genera il report testuale combinando Tarocchi, Astrologia e Numerologia
+    nella lingua specificata.
     'dati_progetto' è un dizionario che contiene tutte le informazioni necessarie.
     'lang' è il codice della lingua (es. 'it', 'en').
     """
@@ -75,8 +79,6 @@ def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
     # Usiamo una stesa a 3 carte: Contesto, Azione/Sfida, Prospettiva
     carte_estratte = estrai_carte(mazzo, 3)
     if not carte_estratte:
-        # Usare una stringa localizzata per l'errore sarebbe meglio,
-        # ma questo errore è più per il log che per l'utente finale GUI.
         return f"Error [{lang}]: Cannot draw Tarot cards."
 
     # 2. Analisi Astrologica
@@ -84,7 +86,17 @@ def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
     significato_segno_progetto = get_zodiac_meaning(segno_solare_progetto_key, lang)
     display_segno_progetto = get_display_sign_name(segno_solare_progetto_key, lang)
 
-    # 3. Costruzione del Report usando get_string per la localizzazione
+    # 3. Analisi Numerologica (Aggiunta)
+    numero_nome = calculate_numerology(nome_progetto)
+    significato_numero_nome = get_numerology_meaning(numero_nome, lang)
+    numero_descrizione = calculate_numerology(descrizione)
+    significato_numero_descrizione = get_numerology_meaning(numero_descrizione, lang)
+    # Si potrebbe anche calcolare un numero combinato
+    numero_combinato = calculate_numerology(nome_progetto + " " + descrizione)
+    significato_numero_combinato = get_numerology_meaning(numero_combinato, lang)
+
+
+    # 4. Costruzione del Report usando get_string per la localizzazione
     report = get_string("report_main_title", lang, nome_progetto) + "\n\n"
     report += f"{get_string('report_description', lang)}: {descrizione}\n"
     report += f"{get_string('report_start_date', lang)}: {data_inizio.strftime('%d-%m-%Y')}\n"
@@ -94,12 +106,11 @@ def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
     segni_display = [get_display_sign_name(key, lang) for key in segni_partecipanti_keys]
     report += f"{get_string('report_participants_signs', lang)}: {', '.join(segni_display) if segni_display else get_string('NA', lang)}\n\n"
 
-    # Localizza i nomi delle posizioni della stesa
+    # --- Sezione Tarocchi ---
     pos1_name = get_string("report_tarot_pos1", lang)
     pos2_name = get_string("report_tarot_pos2", lang)
     pos3_name = get_string("report_tarot_pos3", lang)
     report += get_string("report_tarot_header", lang, pos1_name, pos2_name, pos3_name) + "\n"
-
     posizioni_stesa = [f"1. {pos1_name}", f"2. {pos2_name}", f"3. {pos3_name}"]
 
     for i, estrazione in enumerate(carte_estratte):
@@ -107,20 +118,19 @@ def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
         orientamento_key = estrazione['orientamento'] # 'dritto' o 'rovescio'
         nome_carta_it = carta_info['nome'] # Chiave interna per i significati
 
-        # Ottieni nome visualizzato e significato nella lingua corretta
         nome_carta_display = get_tarot_card_display_name(carta_info, lang)
         orientamento_display = get_orientation_string(orientamento_key, lang)
         significato = get_tarot_meaning(nome_carta_it, orientamento_key, lang)
 
         report += f"{posizioni_stesa[i]} ({nome_carta_display} - {orientamento_display}):\n   {significato}\n\n"
 
+    # --- Sezione Astrologia ---
     report += get_string("report_astro_header", lang) + "\n"
     report += get_string("report_astro_project_sign", lang, display_segno_progetto) + ":\n"
     report += f"   {significato_segno_progetto}\n\n"
 
     if segni_partecipanti_keys:
         report += get_string("report_astro_team_dynamics", lang, num_partecipanti) + ":\n"
-        # Conteggio basato sulle chiavi interne
         conteggio_segni = {key: segni_partecipanti_keys.count(key) for key in set(segni_partecipanti_keys)}
         for segno_key, count in conteggio_segni.items():
             prefisso_conteggio = f"{count}x " if count > 1 else ""
@@ -131,7 +141,20 @@ def genera_report_proiezione(dati_progetto, lang=DEFAULT_LANG):
     else:
         report += get_string("report_astro_no_participants", lang) + "\n\n"
 
+    # --- Sezione Numerologia (Aggiunta) ---
+    report += get_string("report_numerology_header", lang) + "\n"
+    report += get_string("report_numerology_name_essence", lang, numero_nome) + ":\n"
+    report += f"   {significato_numero_nome}\n\n"
+    if descrizione: # Solo se c'è una descrizione
+        report += get_string("report_numerology_description_vibration", lang, numero_descrizione) + ":\n"
+        report += f"   {significato_numero_descrizione}\n\n"
+        # Aggiungiamo anche la vibrazione combinata
+        report += get_string("report_numerology_combined_vibration", lang, numero_combinato) + ":\n"
+        report += f"   {significato_numero_combinato}\n\n"
+
+
+    # --- Sezione Finale ---
     report += get_string("report_final_thoughts_header", lang) + "\n"
-    report += get_string("report_disclaimer", lang) + "\n"
+    report += get_string("report_disclaimer", lang) + "\n" # Disclaimer aggiornato in localization.py
 
     return report

@@ -8,8 +8,7 @@ from localization import (
     LANGUAGES, set_language, get_string, CURRENT_LANG,
     get_internal_sign_key, get_valid_sign_display_names, get_display_sign_name
 )
-# Non servono più import diretti da tarot_data/astrology_data qui
-# se non per validazione avanzata (ma usiamo get_valid_sign_display_names)
+# Non servono più import diretti da tarot_data/astrology_data/numerology qui
 
 class TarotAstroApp:
     def __init__(self, root):
@@ -83,12 +82,12 @@ class TarotAstroApp:
 
         # --- Pulsante Genera ---
         self.generate_button = ttk.Button(self.main_frame, text=get_string("generate_button"), command=self.run_analysis)
-        self.generate_button.grid(row=2, column=0, pady=10) # Cambiato row index
+        self.generate_button.grid(row=2, column=0, pady=10)
 
         # --- Sezione Output ---
         self.output_frame = ttk.LabelFrame(self.main_frame, text=get_string("output_frame"), padding="10")
-        self.output_frame.grid(row=3, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=5, pady=5) # Cambiato row index
-        self.main_frame.rowconfigure(3, weight=1) # Aggiornato row index per espansione
+        self.output_frame.grid(row=3, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=5, pady=5)
+        self.main_frame.rowconfigure(3, weight=1) # Output area takes remaining space
 
         self.output_text = scrolledtext.ScrolledText(self.output_frame, wrap=tk.WORD, width=80, height=20, state=tk.DISABLED)
         self.output_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
@@ -133,7 +132,7 @@ class TarotAstroApp:
 
         # 1. Raccogli Input
         nome_progetto = self.nome_progetto_entry.get().strip()
-        descrizione = self.descrizione_entry.get().strip()
+        descrizione = self.descrizione_entry.get().strip() # Descrizione è opzionale
         data_inizio_str = self.data_inizio_entry.get().strip()
         num_partecipanti_str = self.num_partecipanti_entry.get().strip()
         segni_str_input = self.segni_partecipanti_entry.get().strip()
@@ -171,13 +170,12 @@ class TarotAstroApp:
 
             for name in potential_sign_names:
                 if name.lower() in valid_display_names_lower:
-                     # Converte dal nome visualizzato (in lingua corrente) alla chiave interna
                      internal_key = get_internal_sign_key(name, current_lang)
                      if internal_key != "Sconosciuto":
                          recognized_internal_keys.append(internal_key)
-                     else: # Should not happen if logic is correct, but as fallback
+                     else:
                          unrecognized_display_names.append(name)
-                elif name: # Ignora stringhe vuote risultanti da virgole multiple
+                elif name:
                      unrecognized_display_names.append(name)
 
             segni_partecipanti_keys = recognized_internal_keys
@@ -187,7 +185,8 @@ class TarotAstroApp:
                                         get_string("warning_unrecognized_signs", current_lang,
                                                    ', '.join(unrecognized_display_names)))
 
-            if len(segni_partecipanti_keys) != num_partecipanti and num_partecipanti > 0:
+            # Allow mismatch, just inform user
+            if len(segni_partecipanti_keys) != num_partecipanti and num_partecipanti > 0 and segni_str_input:
                  messagebox.showinfo(get_string("info_participants_title", current_lang),
                                      get_string("info_participants_mismatch", current_lang,
                                                 num_partecipanti, len(segni_partecipanti_keys)))
@@ -198,30 +197,33 @@ class TarotAstroApp:
             'nome': nome_progetto,
             'descrizione': descrizione,
             'data_inizio': data_inizio,
-            'num_partecipanti': num_partecipanti, # Usa il numero inserito
-            # Passa le chiavi interne (italiano) alla logica
+            'num_partecipanti': num_partecipanti,
             'segni_partecipanti_keys': segni_partecipanti_keys
         }
 
         # 4. Esegui Logica e Ottieni Report
         self.output_text.config(state=tk.NORMAL)
         self.output_text.delete('1.0', tk.END)
+        # Aggiungi messaggio generazione numerologia
+        self.output_text.insert('end', get_string("generating_message_numerology", current_lang))
         self.output_text.insert('end', get_string("generating_message_astro", current_lang))
         self.output_text.insert('end', get_string("generating_message_shuffle", current_lang))
         self.output_text.insert('end', get_string("generating_message_draw", current_lang))
-        self.root.update_idletasks() # Forza l'aggiornamento della UI per mostrare i messaggi
+        self.root.update_idletasks()
 
         try:
             # Passa la lingua selezionata alla funzione logica
             report = genera_report_proiezione(dati_progetto, current_lang)
         except Exception as e:
+            # Log the full error for debugging
+            import traceback
+            print(f"Error during report generation:\n{traceback.format_exc()}")
             messagebox.showerror(get_string("error_processing_title", current_lang),
-                                 get_string("error_processing_message", current_lang, e))
+                                 get_string("error_processing_message", current_lang, str(e)))
             report = get_string("error_processing_fallback", current_lang)
 
         # 5. Mostra Risultato
-        # L'output text era già stato abilitato e pulito prima dell'elaborazione
-        self.output_text.insert(tk.END, "\n---\n" + report) # Aggiunge il report dopo i messaggi "generazione"
+        self.output_text.insert(tk.END, "\n---\n" + report)
         self.output_text.config(state=tk.DISABLED)
 
 

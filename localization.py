@@ -62,6 +62,10 @@ STRINGS = {
         "it": "Estrazione delle carte.\n",
         "en": "Drawing the cards.\n"
     },
+     "generating_message_numerology": { # Added
+        "it": "Calcolo vibrazioni numerologiche.\n",
+        "en": "Calculating numerological vibrations.\n"
+    },
     "error_input_title": {
         "it": "Errore Input",
         "en": "Input Error"
@@ -170,13 +174,31 @@ STRINGS = {
         "it": "Nessuna informazione sui partecipanti fornita per analizzare le dinamiche del team.",
         "en": "No participant information provided to analyze team dynamics."
     },
+    # Numerology Section Strings (Added)
+    "report_numerology_header": {
+        "it": "*** Vibrazioni Numerologiche ***",
+        "en": "*** Numerological Vibrations ***"
+    },
+    "report_numerology_name_essence": {
+        "it": "Essenza del Progetto (Nome: {})",
+        "en": "Project Essence (Name: {})"
+    },
+    "report_numerology_description_vibration": {
+        "it": "Vibrazione del Progetto (Descrizione: {})",
+        "en": "Project Vibration (Description: {})"
+    },
+     "report_numerology_combined_vibration": {
+        "it": "Vibrazione Combinata (Nome + Descrizione: {})",
+        "en": "Combined Vibration (Name + Description: {})"
+    },
+    # End Numerology Section Strings
     "report_final_thoughts_header": {
         "it": "*** Considerazioni Finali ***",
         "en": "*** Final Considerations ***"
     },
     "report_disclaimer": {
-        "it": "Questo report offre spunti simbolici basati su Tarocchi e Astrologia. Non sostituisce la pianificazione strategica, l'analisi dei rischi concreta o la gestione attiva del progetto. Usa queste indicazioni come strumento di riflessione per esplorare le dinamiche energetiche, i potenziali punti di forza e le aree che potrebbero richiedere maggiore attenzione.",
-        "en": "This report offers symbolic insights based on Tarot and Astrology. It does not replace strategic planning, concrete risk analysis, or active project management. Use these indications as a reflective tool to explore energetic dynamics, potential strengths, and areas that might require more attention."
+        "it": "Questo report offre spunti simbolici basati su Tarocchi, Astrologia e Numerologia. Non sostituisce la pianificazione strategica, l'analisi dei rischi concreta o la gestione attiva del progetto. Usa queste indicazioni come strumento di riflessione per esplorare le dinamiche energetiche, i potenziali punti di forza e le aree che potrebbero richiedere maggiore attenzione.",
+        "en": "This report offers symbolic insights based on Tarot, Astrology, and Numerology. It does not replace strategic planning, concrete risk analysis, or active project management. Use these indications as a reflective tool to explore energetic dynamics, potential strengths, and areas that might require more attention." # Updated Disclaimer
     },
     "orientation_upright_internal": { # Internal mapping key
         "it": "dritto",
